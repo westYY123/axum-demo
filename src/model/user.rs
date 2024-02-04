@@ -1,48 +1,62 @@
-use std::time::Instant;
+use crate::error::{AppError, AppResult};
 
-use serde::{Deserialize, Serialize};
+use super::get_conn;
 
-#[derive(Debug)]
-pub struct UserDto {
-    name: String,
-    password: String,
-    gender: Option<Gender>,
-    register_time: Instant,
-    birth: Instant,
+use sea_orm::entity::prelude::*;
+use sea_orm::{ActiveValue, DeleteResult, UpdateResult};
+
+#[derive(Clone, Debug, Eq, PartialEq, DeriveEntityModel)]
+#[sea_orm(table_name = "user")]
+pub struct Model {
+    #[sea_orm(primary_key, auto_increment = true)]
+    pub id: i32,
+    pub username: String,
+    pub password: String,
 }
+#[derive(Copy, Clone, Debug, EnumIter)]
+pub enum Relation {}
 
-#[derive(Debug, Deserialize)]
-pub struct User {
-    name: String,
-    password: String,
-    gender: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-enum Gender {
-    Male,
-    Female,
-}
-
-impl From<User> for UserDto {
-    fn from(value: User) -> Self {
-        Self {
-            name: value.name,
-            password: value.password,
-            gender: match value.gender {
-                Some(s) => {
-                    if s.to_lowercase().contains("male") {
-                        Some(Gender::Male)
-                    } else if s.to_lowercase().contains("female") {
-                        Some(Gender::Female)
-                    } else {
-                        None
-                    }
-                }
-                None => None,
-            },
-            register_time: Instant::now(),
-            birth: Instant::now(),
-        }
+impl RelationTrait for Relation {
+    fn def(&self) -> RelationDef {
+        panic!("No RelationDef")
     }
+}
+
+impl ActiveModelBehavior for ActiveModel {}
+
+pub async fn insert_user(user: ActiveModel) -> AppResult<Model> {
+    let conn = get_conn().await;
+    user.insert(conn).await.map_err(|_| AppError::InternalError)
+}
+
+pub async fn get_user(username: &str) -> AppResult<Option<Model>> {
+    let conn = get_conn().await;
+    Entity::find()
+        .filter(Column::Username.eq(username))
+        .one(conn)
+        .await
+        .map_err(|_| AppError::InternalError)
+}
+
+pub async fn delete_user(username: &str) -> AppResult<DeleteResult> {
+    let conn = get_conn().await;
+    Entity::delete_many()
+        .filter(Column::Username.eq(username))
+        .exec(conn)
+        .await
+        .map_err(|_| AppError::InternalError)
+}
+
+pub async fn update_user(username: &str, password: &str) -> AppResult<UpdateResult> {
+    let conn = get_conn().await;
+    Entity::update_many()
+        .filter(Column::Username.eq(username))
+        .set(ActiveModel {
+            password: ActiveValue::Set(password.into()),
+            // 如果字段过多，可以使用 ..Default::default 表示不需要填写的字段
+            ..Default::default()
+        })
+        .exec(conn)
+        .await
+        .map_err(|_| AppError::InternalError)
 }

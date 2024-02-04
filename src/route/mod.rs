@@ -8,9 +8,9 @@ use axum::{
 
 use crate::middleware::jwt::decode_user;
 
+use self::client::client;
 use self::health::health;
 use self::register::register;
-use self::client::client;
 use reqwest::Client;
 mod client;
 mod health;
@@ -32,5 +32,7 @@ pub fn create_route() -> Router {
     let app_data = AppData {
         http_client: reqwest::Client::new(),
     };
-    protected_router.merge(public_router).with_state(Arc::new(app_data))
+    protected_router
+        .merge(public_router)
+        .with_state(Arc::new(app_data))
 }

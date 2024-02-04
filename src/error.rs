@@ -3,6 +3,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
+pub type AppResult<T> = Result<T, AppError>;
 #[derive(Debug)]
 pub enum AppError {
     MissingCredentials,

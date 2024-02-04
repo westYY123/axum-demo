@@ -7,10 +7,10 @@
 //     // println!("{config:?}");
 //     run().await
 // }
-mod middleware;
-mod route;
-mod model;
 mod error;
+mod middleware;
+mod model;
+mod route;
 
 use route::create_route;
 
