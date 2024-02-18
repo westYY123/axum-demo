@@ -1,43 +1,48 @@
-use crate::error::AppError;
-use axum::http::header;
-use axum::{extract::Request, middleware::Next, response::IntoResponse};
+use crate::error::{AppError, AppResult};
+use axum::async_trait;
+use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
 
-use jsonwebtoken::{decode, DecodingKey, Validation};
+use axum_extra::headers::authorization::Bearer;
+use axum_extra::headers::Authorization;
+use axum_extra::TypedHeader;
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
+
 const SECRET: &str = "fhriwhgruw";
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
-    pub sub: String,
-    pub iat: usize,
-    pub exp: usize,
+    pub username: String,
 }
 
-pub async fn decode_user(mut req: Request, next: Next) -> Result<impl IntoResponse, AppError> {
-    let token = req
-        .headers()
-        .get(header::AUTHORIZATION)
-        .and_then(|auth| auth.to_str().ok())
-        .and_then(|auth| {
-            if auth.starts_with("Bearer") {
-                Some(auth[7..].to_owned())
-            } else {
-                None
-            }
-        });
-    let token = token.unwrap();
-    let claims = decode::<TokenClaims>(
-        &token,
-        &DecodingKey::from_secret(SECRET.as_bytes()),
-        &Validation::default(),
+#[async_trait]
+impl<B> FromRequestParts<B> for TokenClaims
+where
+    B: Send + Sync,
+{
+    type Rejection = AppError;
+
+    async fn from_request_parts(parts: &mut Parts, state: &B) -> Result<Self, Self::Rejection> {
+        let TypedHeader(Authorization(bearer)) =
+            TypedHeader::<Authorization<Bearer>>::from_request_parts(parts, state)
+                .await
+                .map_err(|_| AppError::MissingCredentials)?;
+        let token_data = decode::<TokenClaims>(
+            bearer.token(),
+            &DecodingKey::from_secret(SECRET.as_bytes()),
+            &Validation::default(),
+        )
+        .map_err(|_| AppError::MissingCredentials)?;
+        Ok(token_data.claims)
+    }
+}
+
+pub fn generate_jwt(claims: &TokenClaims) -> AppResult<String> {
+    encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(SECRET.as_bytes()),
     )
-    .map_err(|_| AppError::InternalError)?
-    .claims;
-    req.extensions_mut().insert(claims.sub);
-    Ok(next.run(req).await)
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct User {
-    name: String,
-    password: String,
+    .map_err(|_| AppError::InternalError)
 }

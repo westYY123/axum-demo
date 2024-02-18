@@ -1,17 +1,17 @@
 use std::sync::Arc;
 
+use crate::{error::AppError, middleware::jwt::TokenClaims};
 use axum::{
     body::Body,
     extract::{Request, State},
     response::{IntoResponse, Response},
 };
 use hyper::StatusCode;
-// use axum::debug_handler;
-use crate::error::AppError;
 
 use super::AppData;
 
 pub async fn client(
+    _user: TokenClaims,
     State(app_data): State<Arc<AppData>>,
     request: Request,
 ) -> Result<impl IntoResponse, AppError> {

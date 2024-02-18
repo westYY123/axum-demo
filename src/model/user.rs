@@ -9,10 +9,11 @@ use sea_orm::{ActiveValue, DeleteResult, UpdateResult};
 #[sea_orm(table_name = "user")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = true)]
-    pub id: i32,
+    pub id: String,
     pub username: String,
     pub password: String,
 }
+
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {}
 
