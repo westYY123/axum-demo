@@ -9,6 +9,7 @@ pub enum AppError {
     MissingCredentials,
     WrongCombinationCredentials,
     InternalError,
+    ExistingSameUsername,
 }
 
 impl std::fmt::Display for AppError {
@@ -35,6 +36,10 @@ impl IntoResponse for AppError {
             AppError::InternalError => Response::builder()
                 .status(500)
                 .body(Body::from("There is an internal error"))
+                .unwrap(),
+            AppError::ExistingSameUsername => Response::builder()
+                .status(400)
+                .body(Body::from("There exists one user with same username"))
                 .unwrap(),
         }
     }

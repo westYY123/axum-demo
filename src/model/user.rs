@@ -3,7 +3,7 @@ use crate::error::{AppError, AppResult};
 use super::get_conn;
 
 use sea_orm::entity::prelude::*;
-use sea_orm::{ActiveValue, DeleteResult, UpdateResult};
+use sea_orm::{ActiveValue, DeleteResult, Set, UpdateResult};
 
 #[derive(Clone, Debug, Eq, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "user")]
@@ -25,9 +25,23 @@ impl RelationTrait for Relation {
 
 impl ActiveModelBehavior for ActiveModel {}
 
-pub async fn insert_user(user: ActiveModel) -> AppResult<Model> {
+pub async fn insert_user(username: String, password: String) -> AppResult<Model> {
     let conn = get_conn().await;
-    user.insert(conn).await.map_err(|_| AppError::InternalError)
+    let existing_user = get_user(&username)
+        .await
+        .map_err(|_| AppError::InternalError)?;
+    match existing_user {
+        Some(_) => Err(AppError::ExistingSameUsername),
+        None => {
+            let user = ActiveModel {
+                id: Set(uuid::Uuid::new_v4().to_string()),
+                username: Set(username),
+                password: Set(password),
+            };
+
+            user.insert(conn).await.map_err(|_| AppError::InternalError)
+        }
+    }
 }
 
 pub async fn get_user(username: &str) -> AppResult<Option<Model>> {
