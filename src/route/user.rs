@@ -6,7 +6,9 @@ use crate::{
     model::user::{self},
 };
 
-use super::idl::{LoginRequest, LoginResponse, RegisterRequest, RegisterResponse};
+use super::idl::{
+    DeleteUserResponse, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse,
+};
 
 pub async fn register(Json(req): Json<RegisterRequest>) -> AppResult<Json<RegisterResponse>> {
     user::insert_user(req.username, req.password)
@@ -28,4 +30,11 @@ pub async fn login(Json(req): Json<LoginRequest>) -> AppResult<Json<LoginRespons
         success: true,
         token: token,
     }))
+}
+
+pub async fn delete_user(claim: TokenClaims) -> AppResult<Json<DeleteUserResponse>> {
+    println!("{:?}", claim.username);
+    user::delete_user(&claim.username)
+        .await
+        .map(|_| Json(DeleteUserResponse { success: true }))
 }

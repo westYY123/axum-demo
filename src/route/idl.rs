@@ -26,3 +26,10 @@ pub struct LoginResponse{
     pub success: bool,
     pub token: String,
 }
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(default)]
+pub struct DeleteUserResponse{
+    pub success: bool,
+}
+
