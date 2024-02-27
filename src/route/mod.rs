@@ -4,6 +4,7 @@ use axum::{
     routing::{delete, get, post},
     Router,
 };
+use rdkafka::{producer::FutureProducer, ClientConfig};
 
 use self::health::health;
 use self::user::register;
@@ -17,14 +18,21 @@ mod health;
 mod idl;
 mod user;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct AppData {
     http_client: Client,
+    kafka_client: FutureProducer,
 }
 
 pub fn create_route() -> Router {
+    let producer: FutureProducer = ClientConfig::new()
+        .set("bootstrap.servers", "localhost:9092")
+        .set("message.timeout.ms", "5000")
+        .create()
+        .expect("Create kafka producer failed");
     let app_data = AppData {
         http_client: reqwest::Client::new(),
+        kafka_client: producer,
     };
     Router::new()
         .route("/register", post(register))
