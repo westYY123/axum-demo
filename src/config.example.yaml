@@ -1,10 +1,6 @@
 mysql:
-  host: 127.0.0.1
+  host: localhost
   port: 3306
   user: root
-  password: jishuzhai
-  db: rust_book
-  pool_min_idle: 8
-  pool_max_open: 32
-  timeout_seconds: 15
-  
+  password: 613181hyy
+  db: axum

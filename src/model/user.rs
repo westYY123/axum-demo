@@ -1,7 +1,4 @@
 use crate::error::{AppError, AppResult};
-
-use super::get_conn;
-
 use sea_orm::entity::prelude::*;
 use sea_orm::{ActiveValue, DeleteResult, Set, UpdateResult};
 
@@ -25,9 +22,12 @@ impl RelationTrait for Relation {
 
 impl ActiveModelBehavior for ActiveModel {}
 
-pub async fn insert_user(username: String, password: String) -> AppResult<Model> {
-    let conn = get_conn().await;
-    let existing_user = get_user(&username)
+pub async fn insert_user(
+    conn: &DatabaseConnection,
+    username: String,
+    password: String,
+) -> AppResult<Model> {
+    let existing_user = get_user(conn, &username)
         .await
         .map_err(|_| AppError::InternalError)?;
     match existing_user {
@@ -44,8 +44,7 @@ pub async fn insert_user(username: String, password: String) -> AppResult<Model>
     }
 }
 
-pub async fn get_user(username: &str) -> AppResult<Option<Model>> {
-    let conn = get_conn().await;
+pub async fn get_user(conn: &DatabaseConnection, username: &str) -> AppResult<Option<Model>> {
     Entity::find()
         .filter(Column::Username.eq(username))
         .one(conn)
@@ -53,8 +52,7 @@ pub async fn get_user(username: &str) -> AppResult<Option<Model>> {
         .map_err(|_| AppError::InternalError)
 }
 
-pub async fn delete_user(username: &str) -> AppResult<DeleteResult> {
-    let conn = get_conn().await;
+pub async fn delete_user(conn: &DatabaseConnection, username: &str) -> AppResult<DeleteResult> {
     Entity::delete_many()
         .filter(Column::Username.eq(username))
         .exec(conn)
@@ -62,8 +60,11 @@ pub async fn delete_user(username: &str) -> AppResult<DeleteResult> {
         .map_err(|_| AppError::InternalError)
 }
 
-pub async fn update_user(username: &str, password: &str) -> AppResult<UpdateResult> {
-    let conn = get_conn().await;
+pub async fn update_user(
+    conn: &DatabaseConnection,
+    username: &str,
+    password: &str,
+) -> AppResult<UpdateResult> {
     Entity::update_many()
         .filter(Column::Username.eq(username))
         .set(ActiveModel {
