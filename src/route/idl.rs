@@ -32,3 +32,9 @@ pub struct LoginResponse {
 pub struct DeleteUserResponse {
     pub success: bool,
 }
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(default)]
+pub struct KafkaMessage {
+    pub message: String,
+}

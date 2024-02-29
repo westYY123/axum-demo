@@ -10,6 +10,7 @@ pub enum AppError {
     WrongCombinationCredentials,
     InternalError,
     ExistingSameUsername,
+    KafkaSendFailed,
 }
 
 impl std::fmt::Display for AppError {
@@ -40,6 +41,10 @@ impl IntoResponse for AppError {
             AppError::ExistingSameUsername => Response::builder()
                 .status(400)
                 .body(Body::from("There exists one user with same username"))
+                .unwrap(),
+            AppError::KafkaSendFailed => Response::builder()
+                .status(500)
+                .body(Body::from("Send Kafka message failed"))
                 .unwrap(),
         }
     }

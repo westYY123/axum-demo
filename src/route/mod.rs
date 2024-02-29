@@ -9,16 +9,17 @@ use sea_orm::DatabaseConnection;
 
 use crate::{model::init_conn, setting::AppConfig};
 
-use self::health::health;
 use self::user::register;
 use self::{
     client::client,
     user::{delete_user, login},
 };
+use self::{health::health, produce_message::send_message};
 use reqwest::Client;
 mod client;
 mod health;
 mod idl;
+mod produce_message;
 mod user;
 
 #[derive(Clone)]
@@ -30,8 +31,11 @@ pub struct AppData {
 
 pub async fn create_route(config: AppConfig) -> Router {
     let producer: FutureProducer = ClientConfig::new()
-        .set("bootstrap.servers", "localhost:9092")
-        .set("message.timeout.ms", "5000")
+        .set(
+            "bootstrap.servers",
+            format!("{}:{}", &config.kafka.host, &config.kafka.port),
+        )
+        .set("message.timeout.ms", format!("{}", config.kafka.timeout))
         .create()
         .expect("Create kafka producer failed");
     let mysql = init_conn(config.mysql).await;
@@ -50,5 +54,6 @@ pub async fn create_route(config: AppConfig) -> Router {
         )
         .route("/client", get(client))
         .route("/health", get(health))
+        .route("/kafka/message", post(send_message))
         .with_state(Arc::new(app_data))
 }

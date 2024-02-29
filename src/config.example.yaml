@@ -4,3 +4,7 @@ mysql:
   user: root
   password: 613181hyy
   db: axum
+kafka:
+  host: localhost
+  port: 9092
+  timeout: 5000
