@@ -41,9 +41,13 @@ pub async fn create_route(config: AppConfig) -> Router {
         mysql_client: mysql,
     };
     Router::new()
-        .route("/register", post(register))
-        .route("/login", post(login))
-        .route("/delete", delete(delete_user))
+        .nest(
+            "/user",
+            Router::new()
+                .route("/register", post(register))
+                .route("/login", post(login))
+                .route("/delete", delete(delete_user)),
+        )
         .route("/client", get(client))
         .route("/health", get(health))
         .with_state(Arc::new(app_data))
