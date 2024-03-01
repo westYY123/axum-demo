@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct AppConfig {
     pub mysql: MysqlConfig,
     pub kafka: KafkaConfig,
+    pub redis: RedisConfig,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -20,4 +21,10 @@ pub struct KafkaConfig {
     pub host: String,
     pub port: u32,
     pub timeout: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RedisConfig {
+    pub host: String,
+    pub port: u32,
 }

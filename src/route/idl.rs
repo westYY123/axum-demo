@@ -38,3 +38,10 @@ pub struct DeleteUserResponse {
 pub struct KafkaMessage {
     pub message: String,
 }
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(default)]
+pub struct RedisData {
+    pub key: String,
+    pub value: String,
+}

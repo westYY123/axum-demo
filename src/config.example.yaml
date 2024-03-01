@@ -8,3 +8,6 @@ kafka:
   host: localhost
   port: 9092
   timeout: 5000
+redis:
+  host: localhost
+  port: 2000
