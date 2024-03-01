@@ -1,9 +1,18 @@
 use std::fs;
 
 use axum_demo::{error::AppError, route::create_route, setting::AppConfig};
+use tracing::{info, Level};
+use tracing_subscriber::FmtSubscriber;
 
 #[tokio::main]
 async fn main() -> Result<(), AppError> {
+    let subscriber = tracing_subscriber::FmtSubscriber::builder()
+        .with_max_level(Level::TRACE)
+        .finish();
+
+    tracing::subscriber::with_default(subscriber, || {
+        info!("This will be logged to stdout");
+    });
     let file_contents =
         fs::read_to_string("/Users/yiny/rust_projects/axum-demo/src/config.example.yaml")
             .expect("LogRocket: Should have been able to read the file");
