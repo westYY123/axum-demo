@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use axum::{extract::State, Json};
-use redis::Commands;
-use tracing::info;
+use redis::{AsyncCommands, Commands};
+use tracing::{info, instrument};
 
 use crate::error::{AppError, AppResult};
 
@@ -15,10 +15,17 @@ pub async fn put_and_get_redis(
     info!("Get a put and get redis request");
     let mut con = app_data
         .redis_client
-        .get_connection()
+        .get_async_connection()
+        .await
         .map_err(|_| AppError::InternalError)?;
+    
     con.set(req.key.clone(), req.value)
+        .await
         .map_err(|_| AppError::InternalError)?;
 
-    Ok(Json(con.get(req.key).map_err(|_| AppError::InternalError)?))
+    Ok(Json(
+        con.get(req.key)
+            .await
+            .map_err(|_| AppError::InternalError)?,
+    ))
 }
