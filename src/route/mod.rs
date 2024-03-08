@@ -21,10 +21,10 @@ use reqwest::Client;
 mod client;
 mod health;
 mod idl;
+pub mod kafka_consumer;
 mod produce_message;
 mod put_get_redis;
 mod user;
-pub mod kafka_consumer;
 
 #[derive(Clone)]
 pub struct AppData {

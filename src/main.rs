@@ -28,9 +28,7 @@ async fn main() -> Result<(), AppError> {
         .await
         .unwrap();
     print_start_info();
-    tokio::spawn(consume_and_print(config.clone()))
-        .await
-        .unwrap();
+    tokio::task::spawn(consume_and_print(config.clone()));
     axum::serve(listener, app)
         .await
         .map_err(|_| panic!("start server error"))?;

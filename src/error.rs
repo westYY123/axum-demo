@@ -11,6 +11,7 @@ pub enum AppError {
     InternalError,
     ExistingSameUsername,
     KafkaSendFailed,
+    MysqlConnectionError,
 }
 
 impl std::fmt::Display for AppError {
@@ -26,7 +27,7 @@ impl IntoResponse for AppError {
         match self {
             AppError::MissingCredentials => Response::builder()
                 .status(403)
-                .body(Body::from("Please provide email and password"))
+                .body(Body::from("Check your token"))
                 .unwrap(),
             AppError::WrongCombinationCredentials => Response::builder()
                 .status(401)
@@ -45,6 +46,10 @@ impl IntoResponse for AppError {
             AppError::KafkaSendFailed => Response::builder()
                 .status(500)
                 .body(Body::from("Send Kafka message failed"))
+                .unwrap(),
+            AppError::MysqlConnectionError => Response::builder()
+                .status(501)
+                .body(Body::from("Mysql operate failed"))
                 .unwrap(),
         }
     }

@@ -48,7 +48,7 @@ pub async fn consume_and_print(config: AppConfig) {
         .expect("Consumer creation failed");
 
     consumer
-        .subscribe(&vec!["quickstart-events"])
+        .subscribe(&["quickstart-events"])
         .expect("Can't subscribe to specified topics");
 
     loop {

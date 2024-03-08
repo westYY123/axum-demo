@@ -14,6 +14,7 @@ const SECRET: &str = "fhriwhgruw";
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
     pub username: String,
+    pub exp: usize,
 }
 
 #[async_trait]
@@ -28,6 +29,7 @@ where
             TypedHeader::<Authorization<Bearer>>::from_request_parts(parts, state)
                 .await
                 .map_err(|_| AppError::MissingCredentials)?;
+        println!("{}", bearer.token());
         let token_data = decode::<TokenClaims>(
             bearer.token(),
             &DecodingKey::from_secret(SECRET.as_bytes()),

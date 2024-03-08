@@ -6,12 +6,16 @@ use rdkafka::{
     producer::FutureRecord,
 };
 
-use crate::error::{AppError, AppResult};
+use crate::{
+    error::{AppError, AppResult},
+    middleware::jwt::TokenClaims,
+};
 
 use super::{idl::KafkaMessage, AppData};
 
 pub async fn send_message(
     State(app_data): State<Arc<AppData>>,
+    _user: TokenClaims,
     Json(req): Json<KafkaMessage>,
 ) -> AppResult<()> {
     app_data

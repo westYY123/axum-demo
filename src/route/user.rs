@@ -17,9 +17,8 @@ pub async fn register(
     State(app_data): State<Arc<AppData>>,
     Json(req): Json<RegisterRequest>,
 ) -> AppResult<Json<RegisterResponse>> {
-    user::insert_user(&app_data.mysql_client, req.username, req.password)
-        .await
-        .map(|_| Json(RegisterResponse { success: true }))
+    let _ = user::insert_user(&app_data.mysql_client, req.username, req.password).await;
+    Ok(Json(RegisterResponse { success: true }))
 }
 
 pub async fn login(
@@ -34,6 +33,7 @@ pub async fn login(
     }
     let token = generate_jwt(&TokenClaims {
         username: user.username,
+        exp: 2000000000,
     })?;
     Ok(Json(LoginResponse {
         success: true,
